@@ -14,10 +14,10 @@ def parse_args(args, default_port, req_num_args):
     return web_address, port
 
 def build_request(web_address, encoding):
-    http_command = "GET / HTTP/1.1\r\n"
+    http_header = "GET / HTTP/1.1\r\n"
     host = "Host: {}\r\n".format(web_address)
     connection_command = "Connection: close\r\n\r\n"
-    req = http_command + host + connection_command
+    req = http_header + host + connection_command
     return req.encode(encoding)
 
 def receive_response(socket, recv_buff_size):

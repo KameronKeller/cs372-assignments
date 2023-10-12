@@ -17,22 +17,23 @@ class Response:
         # Request the file
         requested_file = self.get_requested_file(self.request.file_name)
 
-        # If the file is a 404 message, prepare that
+        # If the file is not found, set the status to 404
         if requested_file == Response.ERROR_404:
-            response = "{} {}".format(self.http_version, requested_file)
-        
-        # Otherwise, build the response
+            response_status = Response.ERROR_404
         else:
-            response = "{} {}\n{}{}\n{}{}\n{}\n\n{}".format(
-                self.http_version,
-                Response.OK_200,
-                Response.CONTENT_TYPE,
-                self.request.mime_type,
-                Response.CONTENT_LENGTH,
-                len(requested_file),
-                Response.CONNECTION,
-                requested_file
-            )
+            response_status = Response.OK_200
+
+        # Build the response string
+        response = "{} {}\n{}{}\n{}{}\n{}\n\n{}".format(
+            self.http_version,
+            response_status,
+            Response.CONTENT_TYPE,
+            self.request.mime_type,
+            Response.CONTENT_LENGTH,
+            len(requested_file),
+            Response.CONNECTION,
+            requested_file
+        )
 
         # Return the encoded response
         return response.encode(Response.ENCODING)

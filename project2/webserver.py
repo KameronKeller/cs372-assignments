@@ -27,11 +27,12 @@ def receive_request(socket, recv_buff_size):
 
 def run_server():
         port = parse_args(sys.argv, DEFAULT_PORT, MAX_NUM_ARGS)
-        s = socket.socket()
-        s.bind(('', port))
-        s.listen()
+        listening_socket = socket.socket()
+        listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listening_socket.bind(('', port))
+        listening_socket.listen()
         while True:
-            new_conn = s.accept()
+            new_conn = listening_socket.accept()
             new_socket = new_conn[0]  # This is what we'll recv/send on
             receive_request(new_socket, RECV_BUFFER_SIZE)
             new_socket.close()

@@ -4,17 +4,19 @@ class Request:
 
     mime_types = {
         ".txt" : "text/plain",
-        ".html" : "text/html"
+        ".html" : "text/html",
+        ".ico" : "image/x-icon"
     }
 
     def __init__(self, request_data):
-        self.request_data = request_data
+        self.request_data = request_data.decode()
         self.http_method = None
         self.host = None
         self.directory = None
         self.file_name = None
         self.mime_type = None
         self.connection = None
+        self.parse_request()
 
     def parse_request(self):
         # Locate the end of the header
@@ -43,7 +45,6 @@ class Request:
         # Store the necessary values as member variables
         self.directory = directory
         self.file_name = file_name
-        print(file_name)
         self.mime_type = self.get_mime_type(file_extension)
 
     def extract_header_info(self, header):

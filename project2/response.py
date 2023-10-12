@@ -14,9 +14,14 @@ class Response:
         self.http_version = http_version
 
     def build_response(self):
+        # Request the file
         requested_file = self.get_requested_file(self.request.file_name)
+
+        # If the file is a 404 message, prepare that
         if requested_file == Response.ERROR_404:
             response = "{} {}".format(self.http_version, requested_file)
+        
+        # Otherwise, build the response
         else:
             response = "{} {}\n{}{}\n{}{}\n{}\n\n{}".format(
                 self.http_version,
@@ -28,9 +33,12 @@ class Response:
                 Response.CONNECTION,
                 requested_file
             )
+
+        # Return the encoded response
         return response.encode(Response.ENCODING)
 
     def get_requested_file(self, filename):
+        # Attempt to open the file, if it fails, return 404
         try:
             with open(filename) as file:
                 data = file.read()

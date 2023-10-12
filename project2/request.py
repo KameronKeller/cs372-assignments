@@ -5,7 +5,6 @@ class Request:
     mime_types = {
         ".txt" : "text/plain",
         ".html" : "text/html",
-        ".ico" : "image/x-icon"
     }
 
     def __init__(self, request_data):
@@ -56,5 +55,8 @@ class Request:
         self.connection = header[2]
 
     def get_mime_type(self, file_extension):
-        return Request.mime_types[file_extension]
+        if file_extension in Request.mime_types:
+            return Request.mime_types[file_extension]
+        else:
+            return None
 

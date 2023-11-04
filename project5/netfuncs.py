@@ -91,7 +91,6 @@ def get_subnet_mask_value(slash):
 
     # Get the slash value
     slash_value = int(slash.split("/")[1])
-    num_trailing_zeros = ADDR_BIT_SIZE - slash_value
 
     # Set the starting at 0
     output = 0
@@ -135,8 +134,14 @@ def ips_same_subnet(ip1, ip2, slash):
     return: False
     """
 
-    # TODO -- write me!
-    pass
+    subnet_value = get_subnet_mask_value(slash)
+
+    ip_val_1 = ipv4_to_value(ip1)
+    ip_val_2 = ipv4_to_value(ip2)
+    
+    subnet_comparison = (ip_val_1 & subnet_value) == (ip_val_2 & subnet_value)
+
+    return subnet_comparison
 
 def get_network(ip_value, netmask):
     """
@@ -222,6 +227,18 @@ def my_tests():
 
     result6 = get_subnet_mask_value("10.20.30.40/23")
     print(result6 == 4294966784)
+
+    ip1 = "10.23.121.17"
+    ip2 = "10.23.121.225"
+    slash = "/23"
+    result7 = ips_same_subnet(ip1, ip2, slash)
+    print(result7 == True)
+
+    ip1 = "10.23.230.22"
+    ip2 = "10.24.121.225"
+    slash = "/16"
+    result8 = ips_same_subnet(ip1, ip2, slash)
+    print(result8 == False)
 # """
 
 ## -------------------------------------------

@@ -195,12 +195,18 @@ def find_router_for_ip(routers, ip):
     return: None
     """
 
-    # TODO -- write me!
-    pass
+    same_subnet = None
+
+    for router, netmask in routers.items():
+        if ips_same_subnet(ip, router, netmask["netmask"]):
+            same_subnet = router
+
+    return same_subnet
+
 
 # Uncomment this code to have it run instead of the real main.
 # Be sure to comment it back out before you submit!
-# """
+"""
 def my_tests():
     print("-------------------------------------")
     print("This is the result of my custom tests")
@@ -208,40 +214,62 @@ def my_tests():
 
     # ipv4_to_value test
     result1= ipv4_to_value("255.255.0.0")
-    print(result1 == 4294901760)
+    assert result1 == 4294901760
 
     result2= ipv4_to_value("1.2.3.4")
-    print(result2 == 16909060)
+    assert result2 == 16909060
 
     # value_to_ipv4 test
     result3 = value_to_ipv4(4294901760)
-    print(result3 == "255.255.0.0")
+    assert result3 == "255.255.0.0"
 
     result4 = value_to_ipv4(16909060)
-    print(result4 == "1.2.3.4")
+    assert result4 == "1.2.3.4"
 
     # get_subnet_mask_value test
     result5 = get_subnet_mask_value("/16")
-    print(result5 == 4294901760)
+    assert result5 == 4294901760
 
     result6 = get_subnet_mask_value("10.20.30.40/23")
-    print(result6 == 4294966784)
+    assert result6 == 4294966784
 
     ip1 = "10.23.121.17"
     ip2 = "10.23.121.225"
     slash = "/23"
     result7 = ips_same_subnet(ip1, ip2, slash)
-    print(result7 == True)
+    assert result7 == True
 
     ip1 = "10.23.230.22"
     ip2 = "10.24.121.225"
     slash = "/16"
     result8 = ips_same_subnet(ip1, ip2, slash)
-    print(result8 == False)
+    assert result8 == False
 
     result9 = get_network(0x01020304, 0xffffff00)
-    print(result9 == 0x01020300)
-# """
+    assert result9 == 0x01020300
+
+    routers = {
+        "1.2.3.1": {
+            "netmask": "/24"
+        },
+        "1.2.4.1": {
+            "netmask": "/24"
+        }
+    }
+    result10 = find_router_for_ip(routers, "1.2.3.5")
+    assert result10 == "1.2.3.1"
+
+    routers = {
+        "1.2.3.1": {
+            "netmask": "/24"
+        },
+        "1.2.4.1": {
+            "netmask": "/24"
+        }
+    }
+    result11 = find_router_for_ip(routers, "1.2.5.6")
+    assert result11 == None
+"""
 
 ## -------------------------------------------
 ## Do not modify below this line

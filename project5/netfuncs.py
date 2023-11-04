@@ -1,6 +1,9 @@
 import sys
 import json
 
+BYTE_SIZE = 8
+ADDR_BIT_SIZE = 32
+
 def ipv4_to_value(ipv4_addr):
     """
     Convert a dots-and-numbers IP address to a single 32-bit numeric
@@ -14,9 +17,22 @@ def ipv4_to_value(ipv4_addr):
     ipv4_addr: "1.2.3.4"
     return:    16909060  (Which is 0x01020304 hex)
     """
+    # Split the address on the dots
+    address_split = ipv4_addr.split(".")
 
-    # TODO -- write me!
-    pass
+    # Convert individual address components from strings to numbers
+    hex_addr_bytes = [int(a) for a in address_split]
+
+    # Loop over the values and bit shift by 1 byte each time
+    bit_shift_value = ADDR_BIT_SIZE
+    integer_representation = 0
+    for num in hex_addr_bytes:
+        bit_shift_value -= BYTE_SIZE
+
+        # Bitwise-OR the previous result to the current result
+        integer_representation |= (num << bit_shift_value)
+
+    return integer_representation
 
 def value_to_ipv4(addr):
     """
@@ -33,9 +49,26 @@ def value_to_ipv4(addr):
     addr:   0x01020304 0b00000001000000100000001100000100 16909060
     return: "1.2.3.4"
     """
+    num_bytes = int(ADDR_BIT_SIZE/BYTE_SIZE)
 
-    # TODO -- write me!
-    pass
+    # A single byte of all 1's used to and values against
+    one_byte_all_ones = 255
+    bit_shift_value = 0
+    output = []
+
+    # Iterate over the number of bytes, shifting the addr value by 1 byte each time
+    # And the address against 255 to extract the last byte
+    # Insert the extracted byte to the front of an array
+    for _ in range(num_bytes):
+        output.insert(0, (addr >> bit_shift_value) & one_byte_all_ones)
+        bit_shift_value += BYTE_SIZE
+
+    # convert each value to a string
+    output = [str(x) for x in output]
+
+    # Join the string together to get the final value
+    return ".".join(output)
+
 
 def get_subnet_mask_value(slash):
     """
@@ -56,8 +89,24 @@ def get_subnet_mask_value(slash):
     return: 0xfffffe00 0b11111111111111111111111000000000 4294966784
     """
 
-    # TODO -- write me!
-    pass
+    # Get the slash value
+    slash_value = int(slash.split("/")[1])
+    num_trailing_zeros = ADDR_BIT_SIZE - slash_value
+
+    # Set the starting at 0
+    output = 0
+
+    # Fill the value with 1s up to the number of slash values
+    for i in range(ADDR_BIT_SIZE):
+        output = output << 1
+
+        # If the value should be 1, or the value with 1
+        if i < slash_value:
+            output |= 1
+    
+    return output
+
+
 
 def ips_same_subnet(ip1, ip2, slash):
     """
@@ -147,16 +196,33 @@ def find_router_for_ip(routers, ip):
 
 # Uncomment this code to have it run instead of the real main.
 # Be sure to comment it back out before you submit!
-"""
+# """
 def my_tests():
     print("-------------------------------------")
     print("This is the result of my custom tests")
     print("-------------------------------------")
 
-    print(x)
+    # ipv4_to_value test
+    result1= ipv4_to_value("255.255.0.0")
+    print(result1 == 4294901760)
 
-    # Add custom test code here
-"""
+    result2= ipv4_to_value("1.2.3.4")
+    print(result2 == 16909060)
+
+    # value_to_ipv4 test
+    result3 = value_to_ipv4(4294901760)
+    print(result3 == "255.255.0.0")
+
+    result4 = value_to_ipv4(16909060)
+    print(result4 == "1.2.3.4")
+
+    # get_subnet_mask_value test
+    result5 = get_subnet_mask_value("/16")
+    print(result5 == 4294901760)
+
+    result6 = get_subnet_mask_value("10.20.30.40/23")
+    print(result6 == 4294966784)
+# """
 
 ## -------------------------------------------
 ## Do not modify below this line

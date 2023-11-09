@@ -98,7 +98,25 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     # Find shortest path
     # while to_visit is not empty
     while len(to_visit) != 0:
-        current_node = min_distance(distance)
+        current_node = min_distance(distance, to_visit)
+        to_visit.remove(current_node)
+        for neighbor_router, specs in routers[current_node]["connections"].items():
+            distance_to_source = specs["ad"] + distance[current_node]
+            if distance_to_source < distance[neighbor_router]:
+                distance[neighbor_router] = distance_to_source
+                parent[neighbor_router] = current_node
+
+    # print(routers) 
+    path = []
+    current_node = dest_ip_router
+    while current_node != src_ip_router:
+        path.append(current_node)
+        current_node = parent[current_node]
+    path.append(src_ip_router)
+
+    path.reverse()
+
+    return path
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE

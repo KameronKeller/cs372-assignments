@@ -19,8 +19,15 @@ def initialize_data_structures(routers, src_ip):
 
     return to_visit, distance, parent
 
-def min_distance(distance):
-    return min(distance, key=distance.get)
+def min_distance(distance, to_visit):
+    min_distance_router = ""
+    min_distance = math.inf
+    for router in to_visit:
+        if distance[router] < min_distance:
+            min_distance_router = router
+            min_distance = distance[router]
+    
+    return min_distance_router
 
 
 def dijkstras_shortest_path(routers, src_ip, dest_ip):

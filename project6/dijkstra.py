@@ -14,6 +14,9 @@ def initialize_data_structures(routers, src_ip):
         parent[router] = None
     
     distance[src_ip] = 0
+    # Set the distance to source ip's router to 0
+    src_ip_router = netfuncs.find_router_for_ip(routers, src_ip)
+    distance[src_ip_router] = 0
 
     return to_visit, distance, parent
 

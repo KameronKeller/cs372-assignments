@@ -84,6 +84,14 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     for madness.
     """
 
+    # If the source IP and destination IP are on the same subnet, return an empty array
+    src_ip_router = netfuncs.find_router_for_ip(routers, src_ip)
+    dest_ip_router = netfuncs.find_router_for_ip(routers, dest_ip)
+    src_ip_slash = routers[src_ip_router]["netmask"]
+
+    if netfuncs.ips_same_subnet(src_ip, dest_ip, src_ip_slash):
+        return []
+
     # Initialize data structures
     to_visit, distance, parent = initialize_data_structures(routers, src_ip)
 

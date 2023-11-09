@@ -1,6 +1,7 @@
 import sys
 import json
 import math  # If you want to use math.inf for infinity
+import netfuncs
 
 def initialize_data_structures(routers, src_ip):
     to_visit = set()

@@ -2,7 +2,7 @@ import sys
 import json
 import math  # If you want to use math.inf for infinity
 
-def initialize_data(routers):
+def initialize_data_structures(routers, src_ip):
     to_visit = set()
     distance = {}
     parent = {}
@@ -11,8 +11,13 @@ def initialize_data(routers):
         to_visit.add(router)
         distance[router] = math.inf
         parent[router] = None
+    
+    distance[src_ip] = 0
 
     return to_visit, distance, parent
+
+def min_distance(distance):
+    return min(distance, key=distance.get)
 
 
 def dijkstras_shortest_path(routers, src_ip, dest_ip):
@@ -70,9 +75,12 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     """
 
     # Initialize data structures
-    to_visit, distance, parent = initialize_data(routers)
+    to_visit, distance, parent = initialize_data_structures(routers, src_ip)
 
-    #
+    # Find shortest path
+    # while to_visit is not empty
+    while len(to_visit) != 0:
+        current_node = min_distance(distance)
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE

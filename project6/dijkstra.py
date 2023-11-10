@@ -29,6 +29,55 @@ def min_distance(distance, to_visit):
     
     return min_distance_router
 
+def build_shortest_path_tree(to_visit, distance, routers, parent):
+    # Find shortest path
+    # while to_visit is not empty
+    while len(to_visit) != 0:
+        # get the node with the shortest distance
+        current_node = min_distance(distance, to_visit)
+
+        # remove the node from the set
+        to_visit.remove(current_node)
+
+        # Iterate over the neighbor nodes
+        for neighbor_router, specs in routers[current_node]["connections"].items():
+            distance_to_neighbor = specs["ad"]
+
+            # Calculate the distance to the source
+            distance_to_source = distance_to_neighbor + distance[current_node]
+
+            # If the distance is less than the neighbors current distance, relax the distance
+            if distance_to_source < distance[neighbor_router]:
+                # Update the router's distance
+                distance[neighbor_router] = distance_to_source
+
+                # Update the router's parent
+                parent[neighbor_router] = current_node
+
+    return parent
+
+def get_shortest_path(dest_ip_router, src_ip_router, parent):
+    path = []
+
+    # set the current node as the destination ip's router
+    current_node = dest_ip_router
+
+    # Walk the dictionary back to the source
+    while current_node != src_ip_router:
+
+        # append nodes to the path
+        path.append(current_node)
+
+        # Update the current node
+        current_node = parent[current_node]
+
+    # Append the source ip's router to the path
+    path.append(src_ip_router)
+
+    # Reverse the path so it is displayed correctly
+    path.reverse()
+
+    return path
 
 def dijkstras_shortest_path(routers, src_ip, dest_ip):
     """
@@ -83,6 +132,9 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     function. Having it all built as a single wall of code is a recipe
     for madness.
     """
+    
+    # An array to store the shortest path
+    path = []
 
     # If the source IP and destination IP are on the same subnet, return an empty array
     src_ip_router = netfuncs.find_router_for_ip(routers, src_ip)
@@ -90,31 +142,16 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     src_ip_slash = routers[src_ip_router]["netmask"]
 
     if netfuncs.ips_same_subnet(src_ip, dest_ip, src_ip_slash):
-        return []
+        return path
 
     # Initialize data structures
     to_visit, distance, parent = initialize_data_structures(routers, src_ip)
 
-    # Find shortest path
-    # while to_visit is not empty
-    while len(to_visit) != 0:
-        current_node = min_distance(distance, to_visit)
-        to_visit.remove(current_node)
-        for neighbor_router, specs in routers[current_node]["connections"].items():
-            distance_to_source = specs["ad"] + distance[current_node]
-            if distance_to_source < distance[neighbor_router]:
-                distance[neighbor_router] = distance_to_source
-                parent[neighbor_router] = current_node
+    # build the shortest path tree
+    parent = build_shortest_path_tree(to_visit, distance, routers, parent)
 
-    # print(routers) 
-    path = []
-    current_node = dest_ip_router
-    while current_node != src_ip_router:
-        path.append(current_node)
-        current_node = parent[current_node]
-    path.append(src_ip_router)
-
-    path.reverse()
+    # Walk the path
+    path = get_shortest_path(dest_ip_router, src_ip_router, parent)
 
     return path
 

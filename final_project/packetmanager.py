@@ -1,3 +1,5 @@
+import json
+
 class PacketManager:
 
     def __init__(self, packet_header_size, buffer_size):
@@ -13,9 +15,20 @@ class PacketManager:
 
     def receive_packet(self, socket):
         packet_buffer = b''
-        packet_buffer += socket.recv(self.buffer_size)
+        data = socket.recv(self.buffer_size)
+        # If disconnected
+        # if data == 0:
+        #     return 0
+        
+        packet_buffer += data
         while True:
             if self.has_complete_packet(packet_buffer):
                 return packet_buffer
 
             packet_buffer += socket.recv(self.buffer_size)
+    
+    def get_payload(self, buffer):
+        payload = buffer[self.packet_header_size:]
+        payload = payload.decode("utf-8")
+        payload = json.loads(payload)
+        return payload

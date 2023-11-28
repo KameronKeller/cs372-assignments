@@ -51,7 +51,7 @@ class ServerToClientChatPayload(Payload):
 class JoinPayload(Payload):
 
     def __init__(self, nick):
-        self.join = {
+        self.data = {
             "type": "join",
             "nick": nick
         }
@@ -60,7 +60,7 @@ class JoinPayload(Payload):
 class LeavePayload(Payload):
 
     def __init__(self, nick):
-        self.leave = {
+        self.data = {
             "type": "leave",
             "nick": nick
         }

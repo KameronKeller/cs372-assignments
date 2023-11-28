@@ -3,6 +3,7 @@ import socket
 import threading
 
 from chatuicurses import init_windows, read_command, print_message, end_windows
+from payload import HelloPayload, ClientToServerChatPayload
 
 def receive_messages():
     ...
@@ -27,6 +28,9 @@ def main(argv):
     # Make the client socket and connect
     s = socket.socket()
     s.connect((host, port))
+    hello_payload = HelloPayload(nickname)
+    hello_packet = hello_payload.build_packet()
+    s.sendall(hello_packet)
 
     # Loop forever sending data at random time intervals
     while True:

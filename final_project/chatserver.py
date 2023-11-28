@@ -2,20 +2,30 @@ import sys
 import socket
 import select
 
+PACKET_HEADER_SIZE = 2
 
 RECV_BUFFER_SIZE = 4096
 
-# def has_complete_packet(packet_buffer):
-#     if data_length >= 2:
-#         packet_size = int.from_bytes(data[0:2])
-#     if data_length == 2 + packet_size:
-#         print("full packet received")
-#         print(data)
+def has_complete_packet(packet_buffer):
+    print("called")
+    print(packet_buffer)
+    if len(packet_buffer) >= PACKET_HEADER_SIZE:
+        packet_size = int.from_bytes(packet_buffer[0:PACKET_HEADER_SIZE])
+        return len(packet_buffer) == PACKET_HEADER_SIZE + packet_size
+    else:
+        return False
 
-# def receive_packet(socket):
-#     packet_buffer = b''
-#     while True:
-#         if has_complete_packet(packet_buffer):
+def receive_packet(socket):
+    packet_buffer = b''
+    packet_buffer += socket.recv(RECV_BUFFER_SIZE)
+    while True:
+        if has_complete_packet(packet_buffer):
+            print("complete packet received")
+            return packet_buffer
+        else:
+            print("incomplete packet received")
+
+        packet_buffer += socket.recv(RECV_BUFFER_SIZE)
 
 def run_server(port):
 
@@ -40,7 +50,7 @@ def run_server(port):
         
             else:
                 buffer = b''
-                data = s.recv(RECV_BUFFER_SIZE)
+                data = receive_packet(s)
                 data_length = len(data)
 
 

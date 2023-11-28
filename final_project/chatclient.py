@@ -39,9 +39,12 @@ def main(argv):
         except:
             break
 
-        string_to_send = f"{nickname}> {command}"
-        string_bytes = string_to_send.encode()
-        s.send(string_bytes)
+        chat_payload = ClientToServerChatPayload(command)
+        chat_packet = chat_payload.build_packet()
+
+        # string_to_send = f"{nickname}> {command}"
+        # string_bytes = string_to_send.encode()
+        s.sendall(chat_packet)
 
 
 if __name__ == "__main__":

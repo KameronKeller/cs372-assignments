@@ -7,28 +7,29 @@ from payload import JoinPayload, ServerToClientChatPayload, LeavePayload
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
 
-def prepare_response_to(message):
+def prepare_response_to(s, message, nicknames):
     message_type = message["type"]
     packet = None
     match message_type:
         case "hello":
             join_message = JoinPayload(message["nick"])
             packet = join_message.build_packet()
+            nicknames[s] = message["nick"]
             # return join_packet
         case "chat":
             chat_message = message["message"]
             if chat_message == "/q":
-                leave_message = LeavePayload("placeholder nick")
+                leave_message = LeavePayload(nicknames[s])
                 packet = leave_message.build_packet()
             else:
-                chat_message = ServerToClientChatPayload("placeholder nick", message["message"])
+                chat_message = ServerToClientChatPayload(nicknames[s], message["message"])
                 packet = chat_message.build_packet()
             # return chat_packet
     return packet
 
     
 
-def broadcast_chat(s, packet_buffers, packet_manager):
+def broadcast_chat(s, packet_buffers, packet_manager, nicknames):
     message = packet_buffers[s]
     print(message)
     # response = b''
@@ -38,7 +39,7 @@ def broadcast_chat(s, packet_buffers, packet_manager):
     #     response = leave_packet
     #     print(response)
     # else:
-    response = prepare_response_to(packet_manager.get_payload(message))
+    response = prepare_response_to(s, packet_manager.get_payload(message), nicknames)
     for s1 in packet_buffers.keys():
         s1.sendall(response)
 
@@ -62,7 +63,7 @@ def run_server(port):
     print("waiting for connections")
 
     packet_buffers = {}
-    socket_nicknames = {}
+    nicknames = {}
 
     while True:
         ready_to_read, _, _ = select.select(read_set, {}, {})
@@ -85,10 +86,10 @@ def run_server(port):
                 packet_buffers[s] = data
                 data_length = len(data)
                 if len(data) > 0:
-                    packet_buffers = broadcast_chat(s, packet_buffers, packet_manager)
+                    packet_buffers = broadcast_chat(s, packet_buffers, packet_manager, nicknames)
                     
                     # If this is a hello packet:"
-                    socket_nicknames[s] = "placeholder nickname"
+                    # nicknames[s] = "placeholder nickname"
 
 
                 # if data_length == 0:

@@ -1,33 +1,26 @@
 import sys
 import socket
 import select
+from packetmanager import PacketManager
 
 PACKET_HEADER_SIZE = 2
-
 RECV_BUFFER_SIZE = 4096
 
-def has_complete_packet(packet_buffer):
-    print("called")
-    print(packet_buffer)
-    if len(packet_buffer) >= PACKET_HEADER_SIZE:
-        packet_size = int.from_bytes(packet_buffer[0:PACKET_HEADER_SIZE])
-        return len(packet_buffer) == PACKET_HEADER_SIZE + packet_size
-    else:
-        return False
+def broadcast_chat(s, packet_buffers):
+    message = packet_buffers[s]
+    print("ccccc")
+    print(message)
+    for s1 in packet_buffers.keys():
+        s1.sendall(message)
+    packet_buffers[s] = b''
 
-def receive_packet(socket):
-    packet_buffer = b''
-    packet_buffer += socket.recv(RECV_BUFFER_SIZE)
-    while True:
-        if has_complete_packet(packet_buffer):
-            print("complete packet received")
-            return packet_buffer
-        else:
-            print("incomplete packet received")
+    return packet_buffers
 
-        packet_buffer += socket.recv(RECV_BUFFER_SIZE)
+    # s.sendall(data)
 
 def run_server(port):
+
+    packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
 
     read_set = set()
     listening_socket = socket.socket()
@@ -38,6 +31,9 @@ def run_server(port):
 
     print("waiting for connections")
 
+    packet_buffers = {}
+    socket_nicknames = {}
+
     while True:
         ready_to_read, _, _ = select.select(read_set, {}, {})
 
@@ -47,21 +43,26 @@ def run_server(port):
                 peername = new_conn.getpeername()
                 print("{}: connected".format(peername))
                 read_set.add(new_conn)
+                packet_buffers[new_conn] = b''
         
             else:
-                buffer = b''
-                data = receive_packet(s)
-                data_length = len(data)
+                packet_buffers[s] = packet_manager.receive_packet(s)
+                data_length = len(packet_buffers[s])
+                if len(packet_buffers[s]) > 0:
+                    packet_buffers = broadcast_chat(s, packet_buffers)
+                
+                # If this is a hello packet:"
+                socket_nicknames[s] = "placeholder nickname"
 
 
                 if data_length == 0:
                     print("{}: disconnected".format(peername))
                     read_set.remove(s)
                 else:
-                    packet_length = data[0:2]
+                    packet_length = packet_buffers[s][0:2]
                     print('aaaa')
                     print(int.from_bytes(packet_length))
-                    print("{} bytes: {}".format(data_length, data))
+                    print("{} bytes: {}".format(data_length, packet_buffers[s]))
 
 def usage():
     print("usage: chatserver.py port", file=sys.stderr)

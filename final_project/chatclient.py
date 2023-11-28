@@ -3,10 +3,20 @@ import socket
 import threading
 
 from chatuicurses import init_windows, read_command, print_message, end_windows
-from payload import HelloPayload, ClientToServerChatPayload
+from payload import HelloPayload, ClientToServerChatPayload, LeavePayload
+from packetmanager import PacketManager
 
-def receive_messages():
-    ...
+PACKET_HEADER_SIZE = 2
+RECV_BUFFER_SIZE = 4096
+
+def receive_messages(**kwargs):
+    s = kwargs["socket"]
+    packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
+
+    while True:
+        data = packet_manager.receive_packet(s)
+        if len(data) > 0: # can this condition somehow be abstracted into the receive packets method?
+            print_message(str(data))
 
 def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)
@@ -22,12 +32,13 @@ def main(argv):
     
     init_windows()
 
-    receiver_thread = threading.Thread(target=receive_messages, daemon=True)
-    receiver_thread.start()
-
     # Make the client socket and connect
     s = socket.socket()
     s.connect((host, port))
+
+    receiver_thread = threading.Thread(target=receive_messages, kwargs={"socket":s}, daemon=True)
+    receiver_thread.start()
+
     hello_payload = HelloPayload(nickname)
     hello_packet = hello_payload.build_packet()
     s.sendall(hello_packet)

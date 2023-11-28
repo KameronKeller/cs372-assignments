@@ -50,15 +50,15 @@ def main(argv):
         except:
             break
         
-        if command == "/q":
-            leave_payload = LeavePayload(nickname) # this isn't the correct way
-            leave_packet = leave_payload.build_packet()
-            s.sendall(leave_packet)
-            # sys.exit()
-        else:
-            chat_payload = ClientToServerChatPayload(command)
-            chat_packet = chat_payload.build_packet()
-            s.sendall(chat_packet)
+        # if command == "/q":
+        #     leave_payload = LeavePayload(nickname) # this isn't the correct way
+        #     leave_packet = leave_payload.build_packet()
+        #     s.sendall(leave_packet)
+        #     # sys.exit()
+        # else:
+        chat_payload = ClientToServerChatPayload(command)
+        chat_packet = chat_payload.build_packet()
+        s.sendall(chat_packet)
 
         # string_to_send = f"{nickname}> {command}"
         # string_bytes = string_to_send.encode()

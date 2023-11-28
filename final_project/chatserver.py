@@ -10,6 +10,7 @@ RECV_BUFFER_SIZE = 4096
 def prepare_response_to(s, message, nicknames):
     message_type = message["type"]
     packet = None
+    is_disconnected = False
     match message_type:
         case "hello":
             join_message = JoinPayload(message["nick"])
@@ -21,11 +22,13 @@ def prepare_response_to(s, message, nicknames):
             if chat_message == "/q":
                 leave_message = LeavePayload(nicknames[s])
                 packet = leave_message.build_packet()
+                nicknames.pop(s, None)
+                is_disconnected = True
             else:
                 chat_message = ServerToClientChatPayload(nicknames[s], message["message"])
                 packet = chat_message.build_packet()
             # return chat_packet
-    return packet
+    return packet, is_disconnected
 
     
 
@@ -39,12 +42,15 @@ def broadcast_chat(s, packet_buffers, packet_manager, nicknames):
     #     response = leave_packet
     #     print(response)
     # else:
-    response = prepare_response_to(s, packet_manager.get_payload(message), nicknames)
+    response, is_disconnected = prepare_response_to(s, packet_manager.get_payload(message), nicknames)
     for s1 in packet_buffers.keys():
         s1.sendall(response)
 
-    # Reset the packet buffer after it has been sent
-    packet_buffers[s] = b''
+    if is_disconnected:
+        packet_buffers.pop(s, None)
+    else:
+        # Reset the packet buffer after it has been sent
+        packet_buffers[s] = b''
 
     return packet_buffers
 
@@ -78,15 +84,16 @@ def run_server(port):
         
             else:
                 data = packet_manager.receive_packet(s)
-                # if data == 0:
+                if data == 0:
+                    read_set.remove(s)
                 #     packet_buffers[s] = 0
                 #     # send leavepacket
                 #     # remove socket from dictionaries
-                # else:
-                packet_buffers[s] = data
-                data_length = len(data)
-                if len(data) > 0:
-                    packet_buffers = broadcast_chat(s, packet_buffers, packet_manager, nicknames)
+                else:
+                    packet_buffers[s] = data
+                    data_length = len(data)
+                    if len(data) > 0:
+                        packet_buffers = broadcast_chat(s, packet_buffers, packet_manager, nicknames)
                     
                     # If this is a hello packet:"
                     # nicknames[s] = "placeholder nickname"

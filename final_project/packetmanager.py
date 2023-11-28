@@ -15,17 +15,18 @@ class PacketManager:
 
     def receive_packet(self, socket):
         packet_buffer = b''
-        data = socket.recv(self.buffer_size)
-        # If disconnected
-        # if data == 0:
-        #     return 0
-        
-        packet_buffer += data
         while True:
             if self.has_complete_packet(packet_buffer):
                 return packet_buffer
 
-            packet_buffer += socket.recv(self.buffer_size)
+            data = socket.recv(self.buffer_size)
+
+            # If disconnected
+            if len(data) == 0:
+                return 0
+            
+            packet_buffer += data
+        # packet_buffer += data
     
     def get_payload(self, buffer):
         payload = buffer[self.packet_header_size:]

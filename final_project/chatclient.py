@@ -9,14 +9,28 @@ from packetmanager import PacketManager
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
 
+def prepare_output(message):
+    message_type = message["type"]
+    output = ""
+    match message_type:
+        case "join":
+            output = "*** {} has joined the chat".format(message["nick"])
+        case "chat":
+            output = "{}: {}".format(message["nick"], message["message"])
+        case "leave":
+            output = "*** {} has left the chat".format(message["nick"])
+    return output
+
 def receive_messages(**kwargs):
     s = kwargs["socket"]
     packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
 
     while True:
         data = packet_manager.receive_packet(s)
+        message = packet_manager.get_payload(data)
+        output = prepare_output(message)
         if len(data) > 0: # can this condition somehow be abstracted into the receive packets method?
-            print_message(str(data))
+            print_message(output)
 
 def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)
@@ -46,19 +60,21 @@ def main(argv):
     # Loop forever sending data at random time intervals
     while True:
         try:
-            command = read_command("Enter a thing> ")
+            command = read_command("{}> ".format(nickname))
         except:
             break
         
-        # if command == "/q":
         #     leave_payload = LeavePayload(nickname) # this isn't the correct way
         #     leave_packet = leave_payload.build_packet()
         #     s.sendall(leave_packet)
-        #     # sys.exit()
         # else:
         chat_payload = ClientToServerChatPayload(command)
         chat_packet = chat_payload.build_packet()
         s.sendall(chat_packet)
+        if command == "/q":
+            s.close()
+            end_windows()
+            sys.exit()
 
         # string_to_send = f"{nickname}> {command}"
         # string_bytes = string_to_send.encode()

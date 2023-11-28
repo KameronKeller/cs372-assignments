@@ -7,12 +7,17 @@ class Payload:
         self.payload = self.create_payload(self.data)
 
     def create_payload(self, data):
-        json_data = json.dumps(self.data)
+        json_data = json.dumps(data)
         return json_data.encode("utf-8")
 
-    def get_packet(self):
-        payload_size = len(self.payload)
-        payload_size = payload_size.encode("utf-8")
+    def build_packet(self):
+        payload_size = (len(self.payload)).to_bytes(length=2, byteorder='big')
+        # print("AAA")
+        # print(int.from_bytes(payload_size))
+        # print(payload_size)
+        # print(self.payload)
+        # print(payload_size + self.payload)
+        # payload_size = payload_size.encode("utf-8")
         return payload_size + self.payload
     
 class HelloPayload(Payload):
@@ -24,7 +29,7 @@ class HelloPayload(Payload):
         }
         Payload.__init__(self, self.data)
 
-class ChatPayload(Payload):
+class ClientToServerChatPayload(Payload):
 
     def __init__(self, message):
         self.data = {
@@ -33,7 +38,7 @@ class ChatPayload(Payload):
         }
         Payload.__init__(self, self.data)
 
-class ServerToClientPayload(Payload):
+class ServerToClientChatPayload(Payload):
 
     def __init__(self, nick, message):
         self.data = {

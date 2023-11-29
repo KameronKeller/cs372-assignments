@@ -1,6 +1,7 @@
 import sys
 import socket
 import threading
+import logging
 
 from chatuicurses import init_windows, read_command, print_message, end_windows
 from payload import HelloPayload, ClientToServerChatPayload, LeavePayload
@@ -27,15 +28,18 @@ def receive_messages(**kwargs):
 
     while True:
         data = packet_manager.receive_packet(s)
+        logging.debug(data)
         message = packet_manager.get_payload(data)
         output = prepare_output(message)
         if len(data) > 0: # can this condition somehow be abstracted into the receive packets method?
             print_message(output)
+        data = b''
 
 def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)
 
 def main(argv):
+    logging.basicConfig(filename='client.log', encoding='utf-8', level=logging.DEBUG)
     try:
         nickname = argv[1]
         host = argv[2]
@@ -64,21 +68,15 @@ def main(argv):
         except:
             break
         
-        #     leave_payload = LeavePayload(nickname) # this isn't the correct way
-        #     leave_packet = leave_payload.build_packet()
-        #     s.sendall(leave_packet)
-        # else:
+
         chat_payload = ClientToServerChatPayload(command)
         chat_packet = chat_payload.build_packet()
+        # print(chat_packet)
         s.sendall(chat_packet)
         if command == "/q":
             s.close()
             end_windows()
             sys.exit()
-
-        # string_to_send = f"{nickname}> {command}"
-        # string_bytes = string_to_send.encode()
-        # s.sendall(chat_packet)
 
 
 if __name__ == "__main__":

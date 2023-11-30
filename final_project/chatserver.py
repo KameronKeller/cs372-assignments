@@ -66,7 +66,7 @@ def run_server(port):
     listening_socket.listen()
     read_set.add(listening_socket)
 
-    print("waiting for connections")
+    print("Waiting for connections...")
 
     packet_buffers = {}
     nicknames = {}
@@ -78,7 +78,7 @@ def run_server(port):
             if s == listening_socket:
                 new_conn, _ = s.accept()
                 peername = new_conn.getpeername()
-                # print("{}: connected".format(peername))
+                print("{}: connected".format(peername))
                 read_set.add(new_conn)
                 packet_buffers[new_conn] = b''
         
@@ -86,9 +86,6 @@ def run_server(port):
                 data = packet_manager.receive_packet(s)
                 if data == 0:
                     read_set.remove(s)
-                #     packet_buffers[s] = 0
-                #     # send leavepacket
-                #     # remove socket from dictionaries
                 else:
                     packet_buffers[s] = data
                     data_length = len(data)

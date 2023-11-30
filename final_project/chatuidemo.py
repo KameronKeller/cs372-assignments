@@ -1,8 +1,8 @@
 import threading
 import time
 
-from chatui import init_windows, read_command, print_message, end_windows
-#from chatuicurses import init_windows, read_command, print_message, end_windows
+# from chatui import init_windows, read_command, print_message, end_windows
+from chatuicurses import init_windows, read_command, print_message, end_windows
 
 def runner():
     count = 0

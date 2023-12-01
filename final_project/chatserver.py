@@ -1,12 +1,31 @@
 import sys
 import socket
 import select
+import re
 from packetmanager import PacketManager
 from packet import JoinPacket, ServerToClientChatPacket, LeavePacket
 
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
 
+def handle_special_input(nickname, message):
+    # Match the text after a slash "/"
+    special_input = re.match(r'/(.*)', message)[1]
+    packet = None
+    is_disconnected = False
+    match special_input:
+        # If the client quits, set the is disconnect flag
+        case "q":
+            packet = LeavePacket(nickname)
+            is_disconnected = True
+        
+        # If the message isn't recognized, let the clients know
+        case _:
+            packet = ServerToClientChatPacket("SERVER", "{} entered command '{}', but that command was not found".format(nickname, message))
+
+    return packet, is_disconnected
+
+    
 
 def prepare_response(s, message, nicknames):
     message_type = message["type"]
@@ -21,12 +40,11 @@ def prepare_response(s, message, nicknames):
         case "chat":
             chat_message = message["message"]
 
-            # If the message is /q, set the is disconnect flag
-            if chat_message == "/q":
-                packet = LeavePacket(nicknames[s])
-                is_disconnected = True
+            # If the message begins with /, parse the special input
+            if chat_message[0] == "/":
+                packet, is_disconnected = handle_special_input(nicknames[s], chat_message)
             else:
-                packet = ServerToClientChatPacket(nicknames[s], message["message"])
+                packet = ServerToClientChatPacket(nicknames[s], chat_message)
 
     response = packet.packet
     return response, is_disconnected

@@ -36,13 +36,13 @@ class PacketManager:
             if self.has_complete_packet(packet_buffer):
                 total_packet_length, packet = self.extract_packet(packet_buffer)
                 self.clear_received_packet(total_packet_length)
-                return packet
+                return self.get_payload(packet)
 
             data = socket.recv(self.buffer_size)
 
             # If disconnected
             if len(data) == 0:
-                return 0
+                return False
             
             packet_buffer += data
     

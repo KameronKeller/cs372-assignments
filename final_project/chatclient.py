@@ -26,12 +26,17 @@ def receive_messages(**kwargs):
     packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
 
     while True:
-        data = packet_manager.receive_packet(s)
-        message = packet_manager.get_payload(data)
-        output = prepare_output(message)
-        if len(data) > 0: # can this condition somehow be abstracted into the receive packets method?
-            print_message(output)
-        data = b''
+        message = packet_manager.receive_packet(s)
+        if not message:
+            # logging.debug(message)
+            server_closed_trigger.set()
+            # logging.debug(server_closed_trigger.is_set())
+        else:
+        # message = packet_manager.get_payload(data)
+            output = prepare_output(message)
+            if len(message) > 0: # can this condition somehow be abstracted into the receive packets method?
+                print_message(output)
+            data = b''
 
 def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)

@@ -42,7 +42,7 @@ def broadcast_chat(s, packet_buffers, packet_manager, nicknames):
     #     response = leave_packet
     #     print(response)
     # else:
-    response, is_disconnected = prepare_response_to(s, packet_manager.get_payload(message), nicknames)
+    response, is_disconnected = prepare_response_to(s, message, nicknames)
     for s1 in packet_buffers.keys():
         s1.sendall(response)
 

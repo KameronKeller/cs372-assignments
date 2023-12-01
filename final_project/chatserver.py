@@ -2,7 +2,7 @@ import sys
 import socket
 import select
 from packetmanager import PacketManager
-from payload import JoinPayload, ServerToClientChatPayload, LeavePayload
+from packet import JoinPacket, ServerToClientChatPacket, LeavePacket
 
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
@@ -13,19 +13,19 @@ def prepare_response_to(s, message, nicknames):
     is_disconnected = False
     match message_type:
         case "hello":
-            join_message = JoinPayload(message["nick"])
+            join_message = JoinPacket(message["nick"])
             packet = join_message.build_packet()
             nicknames[s] = message["nick"]
             # return join_packet
         case "chat":
             chat_message = message["message"]
             if chat_message == "/q":
-                leave_message = LeavePayload(nicknames[s])
+                leave_message = LeavePacket(nicknames[s])
                 packet = leave_message.build_packet()
                 nicknames.pop(s, None)
                 is_disconnected = True
             else:
-                chat_message = ServerToClientChatPayload(nicknames[s], message["message"])
+                chat_message = ServerToClientChatPacket(nicknames[s], message["message"])
                 packet = chat_message.build_packet()
             # return chat_packet
     return packet, is_disconnected

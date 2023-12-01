@@ -1,44 +1,39 @@
 import json
 
-class Payload:
+class Packet:
 
     def __init__(self, data):
         self.data = data
         self.payload = self.create_payload(self.data)
+        self.payload_size = (len(self.payload)).to_bytes(length=2, byteorder='big')
+        self.packet = self.build_packet()
 
     def create_payload(self, data):
         json_data = json.dumps(data)
         return json_data.encode("utf-8")
 
     def build_packet(self):
-        payload_size = (len(self.payload)).to_bytes(length=2, byteorder='big')
-        # print("AAA")
-        # print(int.from_bytes(payload_size))
-        # print(payload_size)
-        # print(self.payload)
-        # print(payload_size + self.payload)
-        # payload_size = payload_size.encode("utf-8")
-        return payload_size + self.payload
+        return self.payload_size + self.payload
     
-class HelloPayload(Payload):
+class HelloPacket(Packet):
 
     def __init__(self, nick):
         self.data = {
             "type": "hello",
             "nick": nick
         }
-        Payload.__init__(self, self.data)
+        Packet.__init__(self, self.data)
 
-class ClientToServerChatPayload(Payload):
+class ClientToServerChatPacket(Packet):
 
     def __init__(self, message):
         self.data = {
             "type": "chat",
             "message": message
         }
-        Payload.__init__(self, self.data)
+        Packet.__init__(self, self.data)
 
-class ServerToClientChatPayload(Payload):
+class ServerToClientChatPacket(Packet):
 
     def __init__(self, nick, message):
         self.data = {
@@ -46,22 +41,22 @@ class ServerToClientChatPayload(Payload):
             "nick": nick,
             "message": message
         }
-        Payload.__init__(self, self.data)
+        Packet.__init__(self, self.data)
 
-class JoinPayload(Payload):
+class JoinPacket(Packet):
 
     def __init__(self, nick):
         self.data = {
             "type": "join",
             "nick": nick
         }
-        Payload.__init__(self, self.data)
+        Packet.__init__(self, self.data)
 
-class LeavePayload(Payload):
+class LeavePacket(Packet):
 
     def __init__(self, nick):
         self.data = {
             "type": "leave",
             "nick": nick
         }
-        Payload.__init__(self, self.data)
+        Packet.__init__(self, self.data)

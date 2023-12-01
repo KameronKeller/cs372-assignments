@@ -1,9 +1,9 @@
 import json
 
-packet_buffer = b''
+packet_buffer = b""
+
 
 class PacketManager:
-
     def __init__(self, packet_header_size, buffer_size):
         self.packet_header_size = packet_header_size
         self.buffer_size = buffer_size
@@ -16,13 +16,13 @@ class PacketManager:
         else:
             payload_size = self.get_payload_size(packet_buffer)
             return len(packet_buffer) >= payload_size + self.packet_header_size
-        
+
     def clear_received_packet(self, total_packet_length):
         global packet_buffer
         packet_buffer = packet_buffer[total_packet_length:]
 
     def get_payload_size(self, packet_buffer):
-        payload_size = packet_buffer[:self.packet_header_size]
+        payload_size = packet_buffer[: self.packet_header_size]
         return int.from_bytes(payload_size)
 
     def extract_packet(self, packet_buffer):
@@ -40,14 +40,14 @@ class PacketManager:
 
             data = socket.recv(self.buffer_size)
 
-            # If disconnected
+            # If len(data) is 0, the client has disconnected
             if len(data) == 0:
                 return False
-            
+
             packet_buffer += data
-    
+
     def get_payload(self, buffer):
-        payload = buffer[self.packet_header_size:]
+        payload = buffer[self.packet_header_size :]
         payload = payload.decode("utf-8")
         payload = json.loads(payload)
         return payload

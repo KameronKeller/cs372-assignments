@@ -1,6 +1,8 @@
 import sys
 import socket
 import threading
+import logging
+import time
 
 from chatuicurses import init_windows, read_command, print_message, end_windows
 from payload import HelloPayload, ClientToServerChatPayload
@@ -8,6 +10,11 @@ from packetmanager import PacketManager
 
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
+
+def exit_client(s):
+    s.close()
+    end_windows()
+    sys.exit()
 
 def prepare_output(message):
     message_type = message["type"]
@@ -23,7 +30,9 @@ def prepare_output(message):
 
 def receive_messages(**kwargs):
     s = kwargs["socket"]
+    server_closed_trigger = kwargs["trigger"]
     packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
+    # server_closed_trigger.set()
 
     while True:
         message = packet_manager.receive_packet(s)
@@ -42,6 +51,7 @@ def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)
 
 def main(argv):
+    logging.basicConfig(filename='client.log', encoding='utf-8', level=logging.DEBUG)
     try:
         nickname = argv[1]
         host = argv[2]
@@ -54,9 +64,14 @@ def main(argv):
 
     # Make the client socket and connect
     s = socket.socket()
-    s.connect((host, port))
+    try:
+        s.connect((host, port))
+    except:
+        print("*** Unable to connect to the server ***")
+        exit_client(s)
 
-    receiver_thread = threading.Thread(target=receive_messages, kwargs={"socket":s}, daemon=True)
+    server_closed_trigger = threading.Event()
+    receiver_thread = threading.Thread(target=receive_messages, kwargs={"socket":s, "trigger":server_closed_trigger}, daemon=True)
     receiver_thread.start()
 
     hello_payload = HelloPayload(nickname)
@@ -67,18 +82,24 @@ def main(argv):
     while True:
         try:
             command = read_command("{}> ".format(nickname))
+            if server_closed_trigger.is_set():
+                print_message("*** Unable to send message ***")
+                print_message("*** Connection was closed by the server ***")
+                print_message("*** This client will exit in 3 seconds. ***")
+                time.sleep(3)
+                exit_client(s)
         except:
             break
         
 
         chat_payload = ClientToServerChatPayload(command)
         chat_packet = chat_payload.build_packet()
+        # logging.debug("main {}".format(server_closed_trigger.is_set()))
         # print(chat_packet)
         s.sendall(chat_packet)
         if command == "/q":
-            s.close()
-            end_windows()
-            sys.exit()
+            exit_client(s)
+
 
 
 if __name__ == "__main__":

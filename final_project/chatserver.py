@@ -7,6 +7,7 @@ from packet import JoinPacket, ServerToClientChatPacket, LeavePacket
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
 
+
 def prepare_response(s, message, nicknames):
     message_type = message["type"]
     packet = None
@@ -30,7 +31,7 @@ def prepare_response(s, message, nicknames):
     response = packet.packet
     return response, is_disconnected
 
-    
+
 def broadcast_chat(s, packet_buffers, nicknames):
     # Get the buffer from this socket
     buffer = packet_buffers[s]
@@ -51,7 +52,6 @@ def broadcast_chat(s, packet_buffers, nicknames):
 
 
 def run_server(port):
-
     packet_manager = PacketManager(PACKET_HEADER_SIZE, RECV_BUFFER_SIZE)
 
     # Create a set to hold sockets to listen to
@@ -64,7 +64,7 @@ def run_server(port):
     listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     # Setup the listening socket and add to read_set
-    listening_socket.bind(('', port))
+    listening_socket.bind(("", port))
     listening_socket.listen()
     read_set.add(listening_socket)
 
@@ -81,7 +81,6 @@ def run_server(port):
         ready_to_read, _, _ = select.select(read_set, {}, {})
 
         for s in ready_to_read:
-
             # Watch for new connections
             if s == listening_socket:
                 # Accept a new connection
@@ -93,8 +92,8 @@ def run_server(port):
                 read_set.add(new_conn)
 
                 # Setup an empty buffer in the packet buffer
-                packet_buffers[new_conn] = b''
-        
+                packet_buffers[new_conn] = b""
+
             else:
                 # Receive incoming data from a connection
                 data = packet_manager.receive_packet(s)
@@ -106,10 +105,11 @@ def run_server(port):
                 else:
                     packet_buffers[s] = data
                     packet_buffers = broadcast_chat(s, packet_buffers, nicknames)
-                    
+
 
 def usage():
     print("usage: chatserver.py port", file=sys.stderr)
+
 
 def main(argv):
     try:
@@ -119,6 +119,7 @@ def main(argv):
         return 1
 
     run_server(port)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

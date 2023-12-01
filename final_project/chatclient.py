@@ -8,21 +8,26 @@ from packet import HelloPacket, ClientToServerChatPacket
 from packetmanager import PacketManager
 
 # Time in seconds for client to automatically close when server disconnects
-SERVER_DISCONNECT_TIMEOUT = 3 
+SERVER_DISCONNECT_TIMEOUT = 3
 PACKET_HEADER_SIZE = 2
 RECV_BUFFER_SIZE = 4096
+
 
 def exit_client(s):
     s.close()
     end_windows()
     sys.exit()
 
+
 def shutdown_client(s):
     print_message("*** Unable to send message ***")
     print_message("*** Connection was closed by the server ***")
-    print_message("*** This client will exit in {} seconds ***".format(SERVER_DISCONNECT_TIMEOUT))
+    print_message(
+        "*** This client will exit in {} seconds ***".format(SERVER_DISCONNECT_TIMEOUT)
+    )
     time.sleep(SERVER_DISCONNECT_TIMEOUT)
     exit_client(s)
+
 
 def prepare_output(message):
     message_type = message["type"]
@@ -35,6 +40,7 @@ def prepare_output(message):
         case "leave":
             output = "*** {} has left the chat".format(message["nick"])
     return output
+
 
 def receive_messages(**kwargs):
     s = kwargs["socket"]
@@ -53,8 +59,10 @@ def receive_messages(**kwargs):
             output = prepare_output(message)
             print_message(output)
 
+
 def usage():
     print("usage: chatclient.py nickname host port", file=sys.stderr)
+
 
 def main(argv):
     try:
@@ -64,7 +72,7 @@ def main(argv):
     except:
         usage()
         return 1
-    
+
     # Initialize the TUI
     init_windows()
 
@@ -81,7 +89,11 @@ def main(argv):
     server_closed_trigger = threading.Event()
 
     # Create the message displaying thread
-    receiver_thread = threading.Thread(target=receive_messages, kwargs={"socket":s, "trigger":server_closed_trigger}, daemon=True)
+    receiver_thread = threading.Thread(
+        target=receive_messages,
+        kwargs={"socket": s, "trigger": server_closed_trigger},
+        daemon=True,
+    )
     receiver_thread.start()
 
     # Create and send hello packet to server
@@ -103,6 +115,7 @@ def main(argv):
         # If the command is /q, exit
         if command == "/q":
             exit_client(s)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
